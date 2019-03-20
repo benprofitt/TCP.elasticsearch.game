@@ -38,14 +38,13 @@ public class Client {
 		
 		String line = "";
 		
-		while (!line.equals("done")) {
+		while (!line.equals("done") && !line.equals("Over")) {
 			try {
-				
+				System.out.println("Here Client");
 				// Get the value of each line and feed it to the server via the socket
 				line = sc.nextLine();
 				
 				out.writeUTF(line);
-				
 				
 			} catch (Exception e) {
 				System.out.println(e);
@@ -56,9 +55,14 @@ public class Client {
 			
 			// Get the results of our query or game from the server
 			
-			String results = server_input.readLine();
+			String results = server_input.readLine();			
 			
 			System.out.println(results);
+			
+			String message = server_input.readLine();			
+			
+			System.out.println(message);
+			
 			
 		} catch (IOException e) {
 			
