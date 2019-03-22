@@ -1,9 +1,6 @@
 package tcp_elastic_game;
 import java.net.*;
-
-import org.elasticsearch.client.RestHighLevelClient;
-// import org.elasticsearch.common.*;
-
+import java.util.*;
 import java.io.*;
 
 public class Server {
@@ -23,13 +20,12 @@ public class Server {
 	public Server(int port) {
 		try {
 
-			connect_to_ES();
-
 			server = new ServerSocket(port);
 			System.out.println("Opened server on port " + Integer.toString(port));
 
 
 			String line = "";
+			String param = "";
 
 			while (!line.equals("Over")) {
 
@@ -51,7 +47,30 @@ public class Server {
 
 						line = in.readUTF();
 
+						URL url = new URL("localhost:9200");
+						HttpURLConnection con = (HttpURLConnection) url.openConnection();
 
+						Map<String, String> parameters = new HashMap<String, String>();
+
+						if (line == "query") {
+							//build a query through an HTTP request
+							con.setRequestMethod("GET");
+							while (!line.equals("Over") && !line.equals("done")) {
+								line = in.readUTF();
+								param = in.readUTF();
+								parameters.put(line, param);
+							}
+						} else {
+							//Add data via a JSON structure
+							con.setRequestMethod("POST");
+
+						}
+
+						con.setDoOutput(true);
+						DataOutputStream elastic_out = new DataOutputStream(con.getOutputStream());
+						out.writeBytes(getParamsString(parameters));
+						out.flush();
+						out.close();
 
 						System.out.println(line);
 
@@ -84,8 +103,20 @@ public class Server {
 		Server server = new Server(5000);
 	}
 
-	private void connect_to_ES() {
+  public static String getParamsString(Map<String, String> params)
+    throws UnsupportedEncodingException{
+      StringBuilder result = new StringBuilder();
 
-	}
+      for (Map.Entry<String, String> entry : params.entrySet()) {
+        result.append(URLEncoder.encode(entry.getKey(), "UTF-8"));
+        result.append("=");
+        result.append(URLEncoder.encode(entry.getValue(), "UTF-8"));
+        result.append("&");
+      }
 
+      String resultString = result.toString();
+      return resultString.length() > 0
+        ? resultString.substring(0, resultString.length() - 1)
+        : resultString;
+		}
 }
